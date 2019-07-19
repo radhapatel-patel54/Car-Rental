@@ -1,7 +1,5 @@
 package car.rental.service;
 
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,36 +14,38 @@ public class RentalRequestService {
 	@Autowired
 	CarRentalRepo carRentalRepo;
 
-	Vehicle vehicle;
-	CityDistance cityDistance;
 	
-	double basefare = 15;
-	double extraPassCharges=1;
-	double acCharges =2;
-	String result;
 
 	public String calculateExpense(TripInfo tripInfo) throws Exception {
 		
+		Vehicle vehicle;
+		CityDistance cityDistance= new CityDistance();
+		
+		double basefare = 15;
+		double totalDistance;
+		
+		String result;
 		vehicle=carRentalRepo.getVehicle(tripInfo.getVehicleId());
 		cityDistance=carRentalRepo.getDistance(tripInfo.getFromCity(), tripInfo.getToCity());
+		totalDistance=cityDistance.getDistance();
 		
 		if(tripInfo.isRoundTrip()) 
-			cityDistance.setDistance(cityDistance.getDistance()*2);
+			totalDistance=totalDistance*2;
 		if(tripInfo.getFuel().equals("Diesel"))
 			basefare -=1;
-		result = "Total Km "+cityDistance.getDistance()+", Basefare : "+cityDistance.getDistance()*basefare;
+		result = "Total Km "+totalDistance+", Basefare : "+totalDistance*basefare;
 		
 		if(tripInfo.isAC()) {
 			basefare +=2;
-			result = result +", AC Charges : "+ cityDistance.getDistance()*2;
+			result = result +", AC Charges : "+ totalDistance*2;
 		}
 		
 		if(tripInfo.getNoOfPassanger()> vehicle.getLimit()) {
 			basefare = basefare + (tripInfo.getNoOfPassanger()- vehicle.getLimit());
-			result = result +", Extra Passanger Charges : "+ cityDistance.getDistance()*(tripInfo.getNoOfPassanger()- vehicle.getLimit());
+			result = result +", Extra Passanger Charges : "+ totalDistance*(tripInfo.getNoOfPassanger()- vehicle.getLimit());
 		}
 		
-		result =result+" , ------ Total : "+ basefare*cityDistance.getDistance();
+		result =result+" , ------ Total : "+ basefare*totalDistance;
 		//return String.valueOf(basefare*cityDistance.getDistance());
 		return result;
 		
